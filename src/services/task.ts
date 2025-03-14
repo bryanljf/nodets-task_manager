@@ -1,20 +1,41 @@
-import { Prisma } from "@prisma/client";
+import { getUserById } from "../controllers/user";
 import { prisma } from "../libs/prisma";
+import { Task, TaskAssignTo } from "../models/Task";
 
-export const create = async (data: Prisma.TaskCreateInput) => {
+export const create = async (data: Task, userId: number) => {
     try {
-       const task = await prisma.task.upsert({
-        where: {
-            name: data.name
-        },
-        update: {},
-        create: data
-       });
-       
-       return task;
-    }catch (error) {
-        console.log('An error has ocurred during the creation of a new task: ', error);
+        const task = await prisma.task.upsert({
+            where: {
+                id: data.id
+            },
+            update: {},
+            create: {
+                ...data,
+                userId
+            }
+        });
+
+        return task;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const assign = async (data: TaskAssignTo) => {
+    try{
+        const user = await getUserById(data.userId);
+        if(user){
+            const task = prisma.task.update({
+                where: { id:data.id },
+                data: { userId:data.userId }
+            });
+
+            return task;
+        }
+
         return false;
+    }catch(error){
+        throw error;
     }
 }
 
@@ -32,20 +53,18 @@ export const getAll = async (userId: number) => {
 
         return tasks;
     }catch (error) {
-        console.log('An error has ocurred getting all tasks: ', error);
-        return false;
+        throw error;
     }
 }
 
-export const getTask = async (name: string) => {
+export const getTask = async (id: number) => {
     try {
         const task = await prisma.task.findUnique({
-            where: { name }
+            where: { id }
         });
 
         return task;
     }catch (error) {
-        console.log('An error has ocurred finding the specified task: ', error);
-        return false;
+        throw error;
     }
 }

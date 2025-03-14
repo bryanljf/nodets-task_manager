@@ -26,7 +26,7 @@ export const create = async (data: Prisma.UserCreateInput) => {
 
 export const generateToken = (id: number) => {
     const token = jwt.sign({ id }, process.env.JWT_KEY as string, {
-        expiresIn: '5 minutes'
+        expiresIn: '1 hour'
     });
 
     return "Bearer " + token;
